@@ -6,6 +6,12 @@ A jelölés a [Semantic Versioning](https://semver.org/lang/hu/) szerint:
 A CDN-fogyasztók `@1`-re pinnelve automatikusan kapják a MINOR és PATCH
 frissítéseket; a MAJOR (törő) verziót kézzel kell emelni.
 
+## [2.1.1] — Turnstile site key beégetve
+
+- A WPViking Turnstile **site key** (publikus) beégetve a `DEFAULT_TURNSTILE_SITEKEY`-be,
+  így minden beágyazásnál automatikusan megjelenik a botvédelem. A **secret key** a
+  szerver `lf-config.php`-jába kerül (nincs a repóban).
+
 ## [2.1.0] — Turnstile + alap cím + prefix lazítás
 
 ### Hozzáadva

@@ -24,10 +24,10 @@ import { getEmailError, isValidEmail, EMAIL_DOMAINS } from "./validation.js";
 // Felülírható: data-api="..." vagy init({ api: "..." }).
 const DEFAULT_API = "https://api.vikingodev.hu/lead/v1/subscribe.php";
 
-// Cloudflare Turnstile SITE KEY (publikus) — ha kitöltöd, minden beágyazásnál
-// automatikusan megjelenik a botvédelem. Felülírható: data-turnstile-sitekey="...".
+// Cloudflare Turnstile SITE KEY (publikus) — minden beágyazásnál automatikusan
+// megjelenik a botvédelem. Felülírható: data-turnstile-sitekey="...".
 // (A SECRET kulcs NEM ide, hanem a szerver lf-config.php-jába megy!)
-const DEFAULT_TURNSTILE_SITEKEY = "";
+const DEFAULT_TURNSTILE_SITEKEY = "0x4AAAAAADewU2LMyb2VllLb";
 
 const STYLE_ID = "lf-styles";
 const TURNSTILE_SCRIPT_ID = "lf-turnstile-script";
