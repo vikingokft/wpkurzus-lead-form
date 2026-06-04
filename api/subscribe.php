@@ -67,7 +67,10 @@ if (!defined('AC_API_URL') || !defined('AC_API_KEY') || AC_API_KEY === '') {
 }
 
 $globalOrigins = defined('LF_GLOBAL_ORIGINS') ? LF_GLOBAL_ORIGINS : [];
-$tagPrefixes = defined('LF_TAG_PREFIXES') ? LF_TAG_PREFIXES : ['LM:'];
+// Opcionális tag-prefix korlát. Alap: ÜRES = nincs prefix-megkötés (csak
+// karakterkészlet + max hossz). Configban bővíthető, pl. ['LM:', 'WEBINAR:'].
+$tagPrefixes = defined('LF_TAG_PREFIXES') ? LF_TAG_PREFIXES : [];
+$turnstileSecret = (defined('LF_TURNSTILE_SECRET') ? LF_TURNSTILE_SECRET : (lf_env('LF_TURNSTILE_SECRET') ?: ''));
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 
 // --- CORS preflight ---
@@ -173,6 +176,32 @@ $rp = parse_url($redirect);
 $redirectOrigin = ($rp['scheme'] ?? '') . '://' . ($rp['host'] ?? '') . (isset($rp['port']) ? ':' . $rp['port'] : '');
 if (!in_array($redirectOrigin, $globalOrigins, true)) {
     lf_respond(400, ['success' => false, 'error' => 'A redirect nem engedélyezett domainre mutat.']);
+}
+
+// --- Cloudflare Turnstile (ha be van állítva LF_TURNSTILE_SECRET) ---
+if ($turnstileSecret !== '') {
+    $token = trim($input['turnstile_token'] ?? '');
+    if ($token === '') {
+        lf_respond(400, ['success' => false, 'error' => 'Hiányzó botvédelmi token.']);
+    }
+    $ch = curl_init('https://challenges.cloudflare.com/turnstile/v0/siteverify');
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => http_build_query([
+            'secret' => $turnstileSecret,
+            'response' => $token,
+            'remoteip' => $_SERVER['REMOTE_ADDR'] ?? '',
+        ]),
+        CURLOPT_TIMEOUT => 10,
+        CURLOPT_SSL_VERIFYPEER => true,
+        CURLOPT_SSL_VERIFYHOST => 2,
+    ]);
+    $tsResp = json_decode(curl_exec($ch) ?: 'null', true);
+    curl_close($ch);
+    if (!is_array($tsResp) || empty($tsResp['success'])) {
+        lf_respond(403, ['success' => false, 'error' => 'A botvédelmi ellenőrzés nem sikerült.']);
+    }
 }
 
 // --- Lista (állandó, környezet szerint) ---

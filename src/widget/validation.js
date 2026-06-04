@@ -57,6 +57,7 @@ export const DEFAULT_MESSAGES = {
   // {suggestion} helyettesítődik a javasolt címmel
   emailTypo: "Elgépelted? Helyesen: {suggestion}",
   gdprRequired: "Az adatkezelési tájékoztató elfogadása kötelező.",
+  turnstileRequired: "Kérlek, igazold, hogy nem vagy robot.",
   networkError: "Hálózati hiba. Kérjük, próbáld újra.",
   genericError: "Hiba történt. Kérjük, próbáld újra.",
 };

@@ -8,6 +8,8 @@
 
 let uid = 0;
 
+const DEFAULT_FORM_TITLE = "Töltsd le ingyen, és iratkozz fel hírlevelünkre!";
+
 const DEFAULT_GDPR_HTML =
   'Feliratkozom a <strong>WPViking Kft.</strong> hírlevelére és kérem az ingyenes letöltési lehetőséget. ' +
   'Az <a href="https://wpkurzus.hu/adatkezelesi-tajekoztato/" target="_blank" rel="noopener">adatkezelési tájékoztatót</a> ' +
@@ -24,8 +26,13 @@ const DEFAULT_NOTE_HTML =
 export function renderForm(mount, cfg) {
   const id = "lf-" + ++uid;
   const cta = escapeHtml(cfg.cta || "Feliratkozom");
-  const title = cfg.formTitle ? `<h3 class="lf-title">${escapeHtml(cfg.formTitle)}</h3>` : "";
+  // Alapértelmezett cím, ha nincs megadva. Üres string ("") elrejti.
+  const titleText = cfg.formTitle != null ? cfg.formTitle : DEFAULT_FORM_TITLE;
+  const title = titleText ? `<h3 class="lf-title">${escapeHtml(titleText)}</h3>` : "";
   const placeholder = escapeHtml(cfg.placeholder || "E-mail cím");
+  const turnstile = cfg.turnstileSitekey
+    ? `<div class="lf-turnstile" data-sitekey="${escapeHtml(cfg.turnstileSitekey)}"></div>`
+    : "";
   const gdprHtml = cfg.gdprHtml != null ? cfg.gdprHtml : DEFAULT_GDPR_HTML;
   const noteHtml = cfg.noteHtml != null ? cfg.noteHtml : DEFAULT_NOTE_HTML;
   const note = noteHtml
@@ -56,6 +63,8 @@ export function renderForm(mount, cfg) {
           ${note}
         </div>
         <div class="lf-error" data-error="gdpr" aria-live="polite"></div>
+
+        ${turnstile}
 
         <button type="submit" class="lf-btn lf-btn--mobile">${cta}</button>
       </div>

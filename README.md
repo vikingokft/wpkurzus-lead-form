@@ -71,7 +71,8 @@ Lásd még az [`examples/`](examples/) mappát.
 | `data-redirect` | `redirect` | ✅ | Köszönő oldal URL-je (csak engedélyezett domainre mutathat) |
 | `data-api` | `api` | | Felülírja a beégetett API végpontot |
 | `data-cta` | `cta` | | CTA gomb szövege |
-| `data-form-title` | `formTitle` | | Cím az email mező felett |
+| `data-form-title` | `formTitle` | | Cím az email mező felett (alap: „Töltsd le ingyen, és iratkozz fel hírlevelünkre!"; `""` = elrejti) |
+| `data-turnstile-sitekey` | `turnstileSitekey` | | Cloudflare Turnstile **site key** (botvédelem bekapcsolása) |
 | `data-placeholder` | `placeholder` | | Input placeholder (alap: „E-mail cím") |
 | `data-theme` | `theme` | | `dark` (alap) vagy `light` |
 | `data-gdpr-html` | `gdprHtml` | | GDPR consent szöveg felülírása (HTML) |
@@ -137,22 +138,37 @@ A titkos fájlok nem commitolódnak (lásd `.gitignore`).
 Mivel a `tag` és a `redirect` a beágyazásban van, több réteg véd a visszaélés ellen:
 
 1. **Origin/Referer allowlist** — csak a `LF_GLOBAL_ORIGINS` domainekről fogad kérést.
-2. **Tag-prefix korlát** (`LF_TAG_PREFIXES`, alap `LM:`) + karakterkészlet + max hossz
-   — egy hamisított kérés sem tud *tetszőleges, érzékeny* taget rárakni, csak
-   lead-magnet jellegűt.
-3. **Redirect host-ellenőrzés** — a redirect csak engedélyezett domainre mutathat
+2. **Redirect host-ellenőrzés** — a redirect csak engedélyezett domainre mutathat
    (nincs open-redirect / phishing).
-4. **Rate limiting** (5 kérés/perc/IP), **honeypot**, **10KB payload limit**,
+3. **Tag-validáció** — karakterkészlet + max 64 karakter. Opcionálisan szigorítható
+   prefix-korláttal (`LF_TAG_PREFIXES`, pl. `['LM:']`) — alapból nincs prefix-megkötés.
+4. **Cloudflare Turnstile** (botvédelem) — lásd lent.
+5. **Rate limiting** (5 kérés/perc/IP), **honeypot**, **10KB payload limit**,
    **SSL verifikáció**, szerveroldali email-validáció.
-5. A **lista állandó** (configból) — a kliens nem választhat listát.
+6. A **lista állandó** (configból) — a kliens nem választhat listát.
 
 **Erősen ajánlott (ActiveCampaign-ben):** kapcsold be a **dupla opt-in**-t a listán
 / automáción. Ez a legnagyobb védelem — egy hamisított vagy spam feliratkozás nem
 válik valódi kontaktté, amíg a címzett nem kattint a megerősítő emailre.
 
-**Opcionális, később:** láthatatlan CAPTCHA (Cloudflare Turnstile) botok ellen,
-illetve HMAC-kel aláírt `tag`+`redirect` („strict mode"), ha valahol maximális
-védelem kell.
+### Cloudflare Turnstile (botvédelem)
+
+A Turnstile-nak **két kulcsa** van — fontos, hogy hová kerülnek:
+
+| Kulcs | Hol van | Hová tedd |
+|---|---|---|
+| **Site key** (publikus) | a böngészőben jelenik meg | a beágyazásba: `data-turnstile-sitekey="0x..."`, **vagy** égesd be egyszer a `src/widget/index.js` `DEFAULT_TURNSTILE_SITEKEY` konstansába (akkor minden formon megjelenik) |
+| **Secret key** (titkos) | csak a szerveren | `lf-config.php`: `define('LF_TURNSTILE_SECRET', '0x...')` — **SOHA ne a kliensbe / repóba** |
+
+Ha a `LF_TURNSTILE_SECRET` ki van töltve a szerveren, a `subscribe.php` **kötelezően**
+ellenőrzi a tokent a Cloudflare-nél. Ha a `data-turnstile-sitekey` (vagy a beégetett
+default) meg van adva, a widget megjeleníti a Turnstile widgetet és elküldi a tokent.
+
+> A Turnstile akkor véd, ha **mindkét** kulcs be van állítva (site key a widgetben,
+> secret a szerveren). Csak az egyik beállítása nem elég.
+
+**Későbbi opció:** HMAC-kel aláírt `tag`+`redirect` („strict mode"), ha valahol
+maximális védelem kell.
 
 ---
 

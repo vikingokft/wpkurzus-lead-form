@@ -6,6 +6,20 @@ A jelölés a [Semantic Versioning](https://semver.org/lang/hu/) szerint:
 A CDN-fogyasztók `@1`-re pinnelve automatikusan kapják a MINOR és PATCH
 frissítéseket; a MAJOR (törő) verziót kézzel kell emelni.
 
+## [2.1.0] — Turnstile + alap cím + prefix lazítás
+
+### Hozzáadva
+- **Cloudflare Turnstile** botvédelem: `data-turnstile-sitekey` (vagy beégetett
+  `DEFAULT_TURNSTILE_SITEKEY`) a widgetben + `LF_TURNSTILE_SECRET` a szerveren
+  (kötelező token-ellenőrzés a Cloudflare-nél, ha be van állítva).
+- Alapértelmezett form cím: „Töltsd le ingyen, és iratkozz fel hírlevelünkre!"
+  (`data-form-title=""` elrejti).
+
+### Megváltozott
+- A tag-prefix korlát (`LF_TAG_PREFIXES`) alapból **ÜRES** (nincs `LM:` megkötés) —
+  bármilyen tag elfogadható (karakterkészlet + max 64 karakter érvényes). Configban
+  szigorítható, ha kell.
+
 ## [2.0.0] — egyszerűsített modell: tag+redirect a beágyazásban (BREAKING)
 
 A registry/admin/funnel-slug megszűnt. A beemeléshez már csak a **tag** és a

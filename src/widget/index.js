@@ -24,7 +24,13 @@ import { getEmailError, isValidEmail, EMAIL_DOMAINS } from "./validation.js";
 // Felülírható: data-api="..." vagy init({ api: "..." }).
 const DEFAULT_API = "https://api.vikingodev.hu/lead/v1/subscribe.php";
 
+// Cloudflare Turnstile SITE KEY (publikus) — ha kitöltöd, minden beágyazásnál
+// automatikusan megjelenik a botvédelem. Felülírható: data-turnstile-sitekey="...".
+// (A SECRET kulcs NEM ide, hanem a szerver lf-config.php-jába megy!)
+const DEFAULT_TURNSTILE_SITEKEY = "";
+
 const STYLE_ID = "lf-styles";
+const TURNSTILE_SCRIPT_ID = "lf-turnstile-script";
 
 // CSS injektálás egyszer, a <head>-be. Az ESM-fogyasztók külön is
 // importálhatják a stíluslapot ("@wpkurzus/lead-form/styles") — a guard
@@ -61,9 +67,37 @@ function cfgFromElement(el) {
     gdprHtml: d.gdprHtml, // ha jelen van, felülírja az alapértelmezettet
     noteHtml: d.noteHtml,
     successMessage: d.successMessage,
+    turnstileSitekey: d.turnstileSitekey,
     tracking: parseJSON(d.tracking, null),
     messages: parseJSON(d.messages, null),
   };
+}
+
+// Cloudflare Turnstile script betöltése (egyszer) + a megadott konténer renderelése.
+function injectTurnstileScript() {
+  if (document.getElementById(TURNSTILE_SCRIPT_ID)) return;
+  const s = document.createElement("script");
+  s.id = TURNSTILE_SCRIPT_ID;
+  s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
+  s.async = true;
+  s.defer = true;
+  document.head.appendChild(s);
+}
+
+function renderTurnstile(container, sitekey) {
+  injectTurnstileScript();
+  let tries = 0;
+  const iv = setInterval(() => {
+    if (window.turnstile && typeof window.turnstile.render === "function") {
+      clearInterval(iv);
+      if (!container.dataset.lfTsRendered) {
+        container.dataset.lfTsRendered = "1";
+        window.turnstile.render(container, { sitekey });
+      }
+    } else if (++tries > 100) {
+      clearInterval(iv); // ~10s után feladjuk
+    }
+  }, 100);
 }
 
 // Visszaadja a hiányzó kötelező mezők listáját (üres = OK).
@@ -113,12 +147,19 @@ function init(target, cfg = {}) {
   }
   // API végpont: megadott vagy a beégetett alapértelmezett.
   cfg.api = cfg.api || DEFAULT_API;
+  // Turnstile site key: megadott vagy a beégetett alapértelmezett.
+  cfg.turnstileSitekey = cfg.turnstileSitekey || DEFAULT_TURNSTILE_SITEKEY || null;
 
   const form = renderForm(mount, cfg);
   bindForm(form, cfg);
 
   const emailInput = form.querySelector('input[name="email"]');
   if (emailInput) initEmailAutocomplete(emailInput, { dark: cfg.theme !== "light" });
+
+  if (cfg.turnstileSitekey) {
+    const tsEl = form.querySelector(".lf-turnstile");
+    if (tsEl) renderTurnstile(tsEl, cfg.turnstileSitekey);
+  }
 
   mount.dataset.lfInitialized = "1";
   return form;

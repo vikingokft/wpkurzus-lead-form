@@ -39,7 +39,12 @@ define('LF_GLOBAL_ORIGINS', [
     'http://localhost:3000',
 ]);
 
-// Engedélyezett tag-prefixek (biztonság: a beküldött tag csak ilyennel kezdődhet,
-// így egy hamisított kérés sem rakhat tetszőleges, érzékeny taget). Üres tömb =
-// nincs prefix-korlát (csak karakterkészlet + max hossz érvényes).
-define('LF_TAG_PREFIXES', ['LM:']);
+// Engedélyezett tag-prefixek (opcionális biztonsági korlát). Üres tömb = bármilyen
+// tag elfogadható (csak karakterkészlet + max 64 karakter érvényes). Ha szigorítani
+// akarsz, sorold fel az engedélyezett prefixeket, pl. ['LM:', 'WEBINAR:'].
+define('LF_TAG_PREFIXES', []);
+
+// Cloudflare Turnstile SECRET kulcs (a botvédelemhez). Ha üresen hagyod / nem
+// definiálod, a Turnstile-ellenőrzés KI van kapcsolva. A SITE KEY (publikus) NEM
+// ide megy, hanem a beágyazásba (data-turnstile-sitekey) vagy a widget DEFAULT-jába.
+// define('LF_TURNSTILE_SECRET', '0x...');

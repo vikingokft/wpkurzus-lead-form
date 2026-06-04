@@ -31,6 +31,8 @@ export interface LeadFormConfig {
   formTitle?: string;
   placeholder?: string;
   theme?: "dark" | "light";
+  /** Cloudflare Turnstile site key (botvédelem bekapcsolása) */
+  turnstileSitekey?: string;
   /** GDPR consent label HTML-je (felülírja a WPViking alapértelmezettet) */
   gdprHtml?: string;
   /** Halvány lábjegyzet HTML-je a consent alatt */

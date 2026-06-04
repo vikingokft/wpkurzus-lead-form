@@ -147,6 +147,17 @@ export function bindForm(form, cfg) {
       hasError = true;
     }
 
+    // Cloudflare Turnstile token (ha be van kapcsolva).
+    let turnstileToken = "";
+    if (cfg.turnstileSitekey) {
+      const tsField = form.querySelector('[name="cf-turnstile-response"]');
+      turnstileToken = tsField ? (tsField.value || "").trim() : "";
+      if (!turnstileToken) {
+        showFormMessage(form, messages.turnstileRequired, true);
+        hasError = true;
+      }
+    }
+
     if (hasError) {
       isSubmitting = false;
       return;
@@ -155,6 +166,7 @@ export function bindForm(form, cfg) {
     setLoading(form, true);
 
     const body = { email: email, tag: cfg.tag, redirect_url: cfg.redirect };
+    if (turnstileToken) body.turnstile_token = turnstileToken;
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), SUBMIT_TIMEOUT_MS);

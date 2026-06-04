@@ -325,6 +325,14 @@
   cursor: wait;
 }
 
+/* === Cloudflare Turnstile === */
+.lf-turnstile {
+  min-height: 65px;
+}
+.lf-turnstile:empty {
+  min-height: 0;
+}
+
 /* === Honeypot — vizuálisan rejtve === */
 .lf-honeypot {
   position: absolute;
