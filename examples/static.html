@@ -15,28 +15,27 @@
     <h1>Feliratkozó form — beágyazva</h1>
 
     <!--
-      1) Tedd be ezt az üres divet oda, ahol a formot szeretnéd.
-      2) Töltsd ki az adatokat (data-api, data-funnel kötelező).
-      3) Illeszd be a <script>-et (lehetőleg verzióra pinnelve + SRI hash-sel).
+      Csak két KÖTELEZŐ mező:
+        data-tag       → melyik AC taget kapja a feliratkozó
+        data-redirect  → köszönő oldal (csak engedélyezett domainre mutathat)
+      Az API végpont be van égetve a widgetbe — nem kell megadni.
     -->
     <div
       data-lead-form
-      data-api="https://api.vikingodev.hu/lead/v1/subscribe.php"
-      data-funnel="50-kerdes-webdesign"
+      data-tag="LM: MILYEN-VALLALKOZAST-INDITS"
+      data-redirect="https://wpkurzus.hu/ingyenes/milyen-vallalkozast-indits/koszi/"
       data-form-title="Töltsd le ingyen!"
       data-cta="Letöltöm"
       data-theme="dark"
-      data-tracking='{"funnel_id":"50-kerdes-webdesign","funnel_name":"50 kérdés webdesign","lead_source":"lead-magnet","lead_type":"munkafuzet"}'
     ></div>
   </div>
 
   <!-- Helyi build teszteléshez: -->
   <script src="../dist/lead-form.min.js"></script>
 
-  <!-- Élesben CDN-ről, verzióra pinnelve (példa):
-  <script
-    src="https://cdn.jsdelivr.net/gh/vikingokft/wpkurzus-lead-form@1/dist/lead-form.min.js"
-    crossorigin="anonymous"></script>
+  <!-- Élesben CDN-ről, verzióra pinnelve:
+  <script src="https://cdn.jsdelivr.net/gh/vikingokft/wpkurzus-lead-form@2/dist/lead-form.min.js"
+          crossorigin="anonymous"></script>
   -->
 </body>
 </html>

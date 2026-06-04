@@ -6,6 +6,30 @@ A jelölés a [Semantic Versioning](https://semver.org/lang/hu/) szerint:
 A CDN-fogyasztók `@1`-re pinnelve automatikusan kapják a MINOR és PATCH
 frissítéseket; a MAJOR (törő) verziót kézzel kell emelni.
 
+## [2.0.0] — egyszerűsített modell: tag+redirect a beágyazásban (BREAKING)
+
+A registry/admin/funnel-slug megszűnt. A beemeléshez már csak a **tag** és a
+**köszönő oldal (redirect)** kell — az API végpont be van égetve a widgetbe.
+
+### Megváltozott (BREAKING)
+- Embed: `data-funnel` → **`data-tag`** + **`data-redirect`** (mindkettő kötelező).
+- A widget API URL-je beégetve (`data-api` opcionális felülírás).
+- `subscribe.php`: a kérés `tag` + `redirect_url` mezőt küld; a **lista állandó**
+  (config: `LF_LIST_ID` / `LF_SANDBOX_LIST_ID`). Nincs `funnels.json` registry.
+- JS opció: `redirect: false` helyett `noRedirect: true`.
+
+### Eltávolítva
+- `api/admin/` (admin felület), `api/funnels.example.json`, a teljes registry-logika.
+
+### Hozzáadva (biztonság)
+- Tag-prefix korlát (`LF_TAG_PREFIXES`, alap `LM:`) + karakterkészlet + max hossz.
+- Redirect host-ellenőrzés (csak engedélyezett originre mutathat — open-redirect védelem).
+- Hiányzó `tag`/`redirect` esetén a widget látható fejlesztői hibát jelenít meg.
+
+### Migráció
+- `data-funnel="x"` → `data-tag="LM: X"` + `data-redirect="https://.../koszi/"`.
+- A szerveren: töröld a `funnels.json`-t, állítsd be a `LF_LIST_ID`-t a configban.
+
 ## [1.0.2] — GDPR consent igazítás
 
 ### Javítva

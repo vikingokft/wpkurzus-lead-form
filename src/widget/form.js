@@ -154,7 +154,7 @@ export function bindForm(form, cfg) {
 
     setLoading(form, true);
 
-    const body = { email: email, funnel_slug: cfg.funnel };
+    const body = { email: email, tag: cfg.tag, redirect_url: cfg.redirect };
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), SUBMIT_TIMEOUT_MS);
@@ -179,8 +179,9 @@ export function bindForm(form, cfg) {
           if (typeof cfg.onSuccess === "function") {
             cfg.onSuccess(result.data, email);
           }
-          // Átirányítás, ha a szerver adott redirect URL-t és nincs letiltva.
-          if (cfg.redirect !== false && result.data.redirect_url) {
+          // Átirányítás a köszönő oldalra (a szerver visszaadja a validált URL-t).
+          // cfg.noRedirect:true esetén nem navigálunk (pl. SPA — onSuccess kezeli).
+          if (!cfg.noRedirect && result.data.redirect_url) {
             setTimeout(() => {
               window.location.href = result.data.redirect_url;
             }, 300);

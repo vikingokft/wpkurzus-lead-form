@@ -3,7 +3,10 @@ node_modules/
 .DS_Store
 
 # Éles titkok / konfiguráció — SOHA nem commitoljuk
-api/config.php
-api/funnels.json
+**/lf-config.php
+**/config.php
 
 # A dist/ SZÁNDÉKOSAN commitolva van (a jsDelivr CDN innen szolgálja ki).
+
+# Szerver-specifikus deploy fájlok (AC kulcs kerülhet beléjük) — SOHA ne commitold
+deploy-vikingodev/

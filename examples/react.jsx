@@ -8,6 +8,8 @@
  * A widget keretrendszer-független DOM-ot rendel egy ref-elt divbe. A stíluslapot
  * egyszer importáld (a CSS automatikusan injektálódik init-kor is, de a külön
  * import segít a build pipeline-nak / SSR-nek).
+ *
+ * Csak a `tag` és a `redirect` KÖTELEZŐ — az API végpont be van égetve.
  */
 
 import { useEffect, useRef } from "react";
@@ -20,19 +22,15 @@ export function LeadFormWidget() {
   useEffect(() => {
     if (!ref.current) return;
     LeadForm.init(ref.current, {
-      api: "https://api.vikingodev.hu/lead/v1/subscribe.php",
-      funnel: "50-kerdes-webdesign",
+      tag: "LM: MILYEN-VALLALKOZAST-INDITS",
+      redirect: "https://wpkurzus.hu/ingyenes/milyen-vallalkozast-indits/koszi/",
       formTitle: "Töltsd le ingyen!",
       cta: "Letöltöm",
       theme: "dark",
-      tracking: {
-        funnel_id: "50-kerdes-webdesign",
-        funnel_name: "50 kérdés webdesign",
-        lead_source: "lead-magnet",
-        lead_type: "munkafuzet",
-      },
-      // Opcionális callbackek (pl. ha nem szerver-redirect, hanem SPA-route kell):
-      // redirect: false,
+      // Opcionális tracking a GTM lead eventhez:
+      tracking: { funnel_id: "milyen-vallalkozast-indits", lead_source: "lead-magnet", lead_type: "kviz" },
+      // SPA esetén szerver-redirect helyett saját router:
+      // noRedirect: true,
       // onSuccess: (data, email) => { /* router.push("/koszi") */ },
       // onError: (msg) => console.warn(msg),
     });

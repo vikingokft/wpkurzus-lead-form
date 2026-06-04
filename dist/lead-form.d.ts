@@ -21,10 +21,12 @@ export interface LeadFormMessages {
 }
 
 export interface LeadFormConfig {
-  /** Kötelező — a központi subscribe.php végpont URL-je */
-  api: string;
-  /** Kötelező — a funnel slug (a szerver registry kulcsa) */
-  funnel: string;
+  /** KÖTELEZŐ — az AC tag, amit a feliratkozó kap (pl. "LM: PELDA") */
+  tag: string;
+  /** KÖTELEZŐ — köszönő oldal URL-je (csak engedélyezett domainre mutathat) */
+  redirect: string;
+  /** Opcionális — felülírja a beégetett alapértelmezett API végpontot */
+  api?: string;
   cta?: string;
   formTitle?: string;
   placeholder?: string;
@@ -34,8 +36,8 @@ export interface LeadFormConfig {
   /** Halvány lábjegyzet HTML-je a consent alatt */
   noteHtml?: string;
   successMessage?: string;
-  /** false → ne irányítson át, a successMessage jelenik meg */
-  redirect?: boolean;
+  /** true → ne navigáljon a redirectre (pl. SPA — onSuccess kezeli) */
+  noRedirect?: boolean;
   tracking?: LeadFormTracking | null;
   messages?: LeadFormMessages | null;
   onSuccess?: (data: { event_id: string; ts: number; redirect_url?: string }, email: string) => void;

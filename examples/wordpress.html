@@ -2,26 +2,26 @@
   WordPress / Elementor beágyazás
   ================================
 
-  Tedd egy "Custom HTML" (Elementor: HTML widget) blokkba az alábbi két részt.
-  A <script>-et elég EGYSZER betölteni az oldalon (akár a téma footerébe is
-  rakhatod), a <div> pedig annyiszor szerepelhet, ahány form kell.
+  Tedd egy "Custom HTML" (Elementor: HTML widget) blokkba. A <script>-et elég
+  EGYSZER betölteni az oldalon; a <div> annyiszor szerepelhet, ahány form kell.
 
-  FONTOS: a data-funnel értékének léteznie kell a szerver funnels.json-jában
-  (ott vannak a tagek és a lista definiálva).
+  Csak két KÖTELEZŐ mező:
+    data-tag       → az AC tag, amit a feliratkozó kap
+    data-redirect  → köszönő oldal URL-je (csak engedélyezett domainre mutathat)
+  Az API végpont be van égetve a widgetbe.
 -->
 
 <div
   data-lead-form
-  data-api="https://api.vikingodev.hu/lead/v1/subscribe.php"
-  data-funnel="50-kerdes-webdesign"
+  data-tag="LM: MILYEN-VALLALKOZAST-INDITS"
+  data-redirect="https://wpkurzus.hu/ingyenes/milyen-vallalkozast-indits/koszi/"
   data-form-title="Kérem az ingyenes anyagot!"
   data-cta="Feliratkozom"
   data-theme="dark"
-  data-tracking='{"funnel_id":"50-kerdes-webdesign","funnel_name":"50 kérdés webdesign","lead_source":"lead-magnet","lead_type":"munkafuzet"}'
 ></div>
 
 <script
-  src="https://cdn.jsdelivr.net/gh/vikingokft/wpkurzus-lead-form@1/dist/lead-form.min.js"
+  src="https://cdn.jsdelivr.net/gh/vikingokft/wpkurzus-lead-form@2/dist/lead-form.min.js"
   crossorigin="anonymous"></script>
 
 <!--

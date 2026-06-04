@@ -4,6 +4,9 @@ Beágyazható, témázható **lead-capture form** — egyetlen *single source of
 amit több rendszer (WordPress, statikus HTML, React/Vite/Next) is be tud emelni.
 Egy javítás itt → egy verziókiadás → mindenhol biztonságosan, könnyen frissül.
 
+**A beemeléshez csak két dolgot kell megadni:** a **tag**-et és a **köszönő oldalt**.
+Az API végpont be van égetve a widgetbe.
+
 A formba bele van fejlesztve minden „okos" megoldás:
 
 - ✉️ **Okos email-validáció** magyar hibaüzenetekkel
@@ -13,56 +16,27 @@ A formba bele van fejlesztve minden „okos" megoldás:
 - 🐝 **Honeypot** spam-szűrés, 15 mp timeout, loading állapot, dupla-beküldés védelem
 - 📊 **GTM `lead` event** push (deduplikációval)
 - 🎨 **Témázható** CSS-változókkal (`--lf-*`), `dark` / `light` téma
-- 🔒 **Biztonságos backend**: a tageket a szerver registry oldja fel — a kliens nem küldhet taget
 
 ---
 
-## Architektúra
-
-```
-                        ┌─────────────────────────────┐
-  WordPress  ──┐        │  wpkurzus-lead-form (repo)   │
-  Statikus HTML├─embed──┤  = SINGLE SOURCE OF TRUTH    │
-  React/Vite  ─┘        │  src/ → dist/ (CDN + npm)    │
-                        └──────────────┬──────────────┘
-                                       │ POST { email, funnel_slug }
-                                       ▼
-                        ┌─────────────────────────────┐
-                        │  api/subscribe.php (központi)│
-                        │  funnels.json → list + TAGEK │
-                        │  (a kliens NEM küld taget)   │
-                        └──────────────┬──────────────┘
-                                       ▼  ActiveCampaign
-```
-
----
-
-## Telepítés / beágyazás
-
-### 1) WordPress vagy statikus HTML — CDN embed
-
-Tedd be az üres mount-divet, és töltsd be a scriptet egyszer:
+## Beemelés egy oldalra
 
 ```html
-<div
-  data-lead-form
-  data-api="https://api.vikingodev.hu/lead/v1/subscribe.php"
-  data-funnel="50-kerdes-webdesign"
-  data-form-title="Töltsd le ingyen!"
-  data-cta="Letöltöm"
-  data-theme="dark"
-  data-tracking='{"funnel_id":"50-kerdes-webdesign","funnel_name":"50 kérdés webdesign","lead_source":"lead-magnet","lead_type":"munkafuzet"}'
-></div>
-
-<script
-  src="https://cdn.jsdelivr.net/gh/vikingokft/wpkurzus-lead-form@1/dist/lead-form.min.js"
-  crossorigin="anonymous"></script>
+<div data-lead-form
+     data-tag="LM: MILYEN-VALLALKOZAST-INDITS"
+     data-redirect="https://wpkurzus.hu/ingyenes/milyen-vallalkozast-indits/koszi/"></div>
+<script src="https://cdn.jsdelivr.net/gh/vikingokft/wpkurzus-lead-form@2/dist/lead-form.min.js"
+        crossorigin="anonymous"></script>
 ```
 
-> A `@1` azt jelenti: mindig a legújabb **1.x** verzió (nem-törő frissítéseket
-> automatikusan megkapod). Fix verzióhoz: `@1.0.0`. Lásd [Frissítés](#frissítés).
+- **`data-tag`** (kötelező) — ezt az AC taget kapja a feliratkozó.
+- **`data-redirect`** (kötelező) — ide visz a beküldés után (köszönő oldal).
+- Ha bármelyik hiányzik, a widget **látható hibát** ír ki a helyén (hogy ne felejtsd el).
 
-### 2) Build-alapú JS projekt (React / Vite / Next) — npm
+> A `@2` mindig a legújabb **2.x** verziót adja. Fix verzióhoz: `@2.0.0` + SRI hash
+> (lásd [Frissítés](#frissítés)).
+
+### React / Vite / Next (npm)
 
 ```bash
 npm install @wpkurzus/lead-form
@@ -77,9 +51,8 @@ export function Optin() {
   const ref = useRef(null);
   useEffect(() => {
     LeadForm.init(ref.current, {
-      api: "https://api.vikingodev.hu/lead/v1/subscribe.php",
-      funnel: "50-kerdes-webdesign",
-      tracking: { funnel_id: "50-kerdes-webdesign", funnel_name: "50 kérdés webdesign", lead_source: "lead-magnet", lead_type: "munkafuzet" },
+      tag: "LM: MILYEN-VALLALKOZAST-INDITS",
+      redirect: "https://wpkurzus.hu/ingyenes/milyen-vallalkozast-indits/koszi/",
     });
   }, []);
   return <div ref={ref} />;
@@ -94,8 +67,9 @@ Lásd még az [`examples/`](examples/) mappát.
 
 | `data-*` attribútum | JS opció | Kötelező | Leírás |
 |---|---|:---:|---|
-| `data-api` | `api` | ✅ | A központi `subscribe.php` URL-je |
-| `data-funnel` | `funnel` | ✅ | Funnel slug (a szerver `funnels.json` kulcsa) |
+| `data-tag` | `tag` | ✅ | Az AC tag, amit a feliratkozó kap (engedélyezett prefix, pl. `LM:`) |
+| `data-redirect` | `redirect` | ✅ | Köszönő oldal URL-je (csak engedélyezett domainre mutathat) |
+| `data-api` | `api` | | Felülírja a beégetett API végpontot |
 | `data-cta` | `cta` | | CTA gomb szövege |
 | `data-form-title` | `formTitle` | | Cím az email mező felett |
 | `data-placeholder` | `placeholder` | | Input placeholder (alap: „E-mail cím") |
@@ -104,7 +78,7 @@ Lásd még az [`examples/`](examples/) mappát.
 | `data-note-html` | `noteHtml` | | Lábjegyzet felülírása (üres = elrejtés) |
 | `data-tracking` | `tracking` | | GTM lead event mezők (JSON) |
 | `data-messages` | `messages` | | Hibaüzenetek felülírása (JSON) |
-| `data-redirect="false"` | `redirect: false` | | Ne irányítson át, csak siker-üzenet |
+| — | `noRedirect: true` | | Ne navigáljon a redirectre (SPA — `onSuccess` kezeli) |
 | — | `onSuccess(data, email)` | | Callback sikeres beküldésnél (csak JS) |
 | — | `onError(message)` | | Callback hibánál (csak JS) |
 
@@ -123,87 +97,62 @@ A host oldalon felülírhatod a CSS-változókat — nincs fork, nincs kódmáso
 
 ---
 
-## Backend telepítés (központi, egyszer)
+## Backend (egy fájl, egyszer)
 
-A `api/` mappa egy hordozható PHP végpont (curl-t használ). A **központi deploy
-a `api.vikingodev.hu` aldoménre** kerül, verziózott útvonalon — így minden oldal
-(wpkurzus.hu, vikingo.hu, jövőbeli) ugyanazt az egy API-t hívja.
+Az `api/subscribe.php` az egyetlen szerver oldali komponens — kell, mert az AC
+API-kulcs nem kerülhet böngészőbe. **Nincs registry, nincs admin**: a beágyazás
+adja a `tag`-et és a `redirect`-et, a **lista állandó** (a configból).
 
-Ajánlott elrendezés a szerveren:
+Ajánlott elrendezés a `api.vikingodev.hu`-n:
 
 ```
 (web root FÖLÖTT)
-├── lf-config.php             ← AC kulcsok (ha NEM env-változót használsz)
-└── funnels.json              ← registry (opcionálisan ide, LF_REGISTRY_PATH-szal)
+└── lf-config.php           ← AC kulcs + állandó lista + engedélyezett originek
 
 web root (api.vikingodev.hu/)
-└── lead/
-    └── v1/
-        ├── subscribe.php     ← https://api.vikingodev.hu/lead/v1/subscribe.php
-        ├── .htaccess         ← hardening: csak a subscribe.php hívható HTTP-n
-        └── funnels.json      ← registry (ha nem a web root fölött van)
+└── lead/v1/
+    ├── subscribe.php       ← https://api.vikingodev.hu/lead/v1/subscribe.php
+    └── .htaccess           ← csak a subscribe.php hívható HTTP-n
 ```
 
-1. **Másold fel** a `api/subscribe.php`-t és a `api/.htaccess`-t a `lead/v1/` mappába.
-2. **Config** — válassz (lásd [Biztonság](#biztonság)):
-   - **(ajánlott)** állítsd be env-változóként az `AC_API_URL`, `AC_API_KEY`, `AC_ENV`,
-     `LF_GLOBAL_ORIGINS` értékeket → semmilyen kulcs nem kerül fájlba;
-   - **vagy** `api/config.example.php` → `lf-config.php` a **web root fölé**.
-3. **Registry**: `api/funnels.example.json` → `funnels.json`, vedd fel a funneleket.
+1. **Másold fel** a `api/subscribe.php`-t és a `api/.htaccess`-t a `lead/v1/`-be.
+2. **Config**: env-változók **vagy** `api/config.example.php` → `lf-config.php` a
+   web root fölé. Töltsd ki: `AC_API_URL`, `AC_API_KEY`, `AC_ENV`, `LF_LIST_ID`,
+   `LF_SANDBOX_LIST_ID`, `LF_GLOBAL_ORIGINS`, `LF_TAG_PREFIXES`.
 
-Egyik titkos fájl sem commitolódik (lásd `.gitignore`).
+A titkos fájlok nem commitolódnak (lásd `.gitignore`).
 
-> **Verziózott út:** a végpont a `/lead/v1/` alatt él. Ha valaha törő változás
-> kell a backendben, a `/lead/v2/` mehet párhuzamosan, a régi kliensek nem törnek el.
+### Új lead form létrehozása
 
-### Biztonság
+1. Találj ki egy taget a konvenció szerint: `LM: VALAMI-SLUG`.
+2. Tedd be a beágyazó kódot az oldalra a `data-tag` + `data-redirect` értékekkel.
+3. Kész — az AC automációt a tag indítja (ahogy eddig is).
 
-Több, egymásra épülő réteg védi a titkokat (defense-in-depth):
+> **Új domain?** Vedd fel a `LF_GLOBAL_ORIGINS`-ba (a form ott fut + a redirect oda mutat).
 
-1. **Kulcsok tárolása — env-változó az elsődleges.** A `subscribe.php` ebben a
-   sorrendben keresi a configot: **(1) környezeti változók** → **(2) `lf-config.php`
-   a web root fölött** → **(3) `config.php` a végpont mellett (csak fejlesztéshez)**.
-   Élesben az env-változó az ajánlott: így a kulcs *egyetlen fájlban sincs* a deploy
-   alatt. A „PHP fájlban tárolt kulcs" csak akkor kockázatos, ha a web rootban van —
-   a web root **fölött** lévő `.php` HTTP-n elérhetetlen és közvetlen hívásra sem ad
-   ki semmit, de az env-változó ennél is tisztább.
-2. **`.htaccess` hardening.** A mellékelt `api/.htaccess` letilt **minden** direkt
-   HTTP-hozzáférést a `subscribe.php`-n kívül — így a `funnels.json`, `config.php`,
-   `.example` és dokumentációs fájlok böngészőből nem érhetők el. (A PHP szerver
-   oldalon olvassa őket, azt ez nem érinti.)
-3. **A registry web root fölé tehető** — `LF_REGISTRY_PATH` env/define-nal.
-4. **Beépített védelmek a kódban**: CSRF/Origin allowlist, CORS preflight, fájl-alapú
-   rate limiting (5 kérés/perc/IP), 10KB payload limit, SSL verifikáció (peer+host),
-   és a tagek kizárólag szerver oldali feloldása (a kliens sosem küld taget).
+---
 
-> **nginx tárhely?** A `.htaccess` csak Apache alatt érvényesül. nginx esetén tedd a
-> `funnels.json`-t és a configot a web root fölé (vagy a `server` blokkba:
-> `location ~ /lead/v1/(funnels\.json|config\.php) { deny all; }`).
+## Biztonság
 
-### Új form / új tag felvétele
+Mivel a `tag` és a `redirect` a beágyazásban van, több réteg véd a visszaélés ellen:
 
-A tageket **mindig a registryben** határozod meg, funnelenként külön — a kliens
-sosem küld taget (így nem lehet vele visszaélni). Új formhoz egyszerűen adj egy
-bejegyzést a `funnels.json`-hoz:
+1. **Origin/Referer allowlist** — csak a `LF_GLOBAL_ORIGINS` domainekről fogad kérést.
+2. **Tag-prefix korlát** (`LF_TAG_PREFIXES`, alap `LM:`) + karakterkészlet + max hossz
+   — egy hamisított kérés sem tud *tetszőleges, érzékeny* taget rárakni, csak
+   lead-magnet jellegűt.
+3. **Redirect host-ellenőrzés** — a redirect csak engedélyezett domainre mutathat
+   (nincs open-redirect / phishing).
+4. **Rate limiting** (5 kérés/perc/IP), **honeypot**, **10KB payload limit**,
+   **SSL verifikáció**, szerveroldali email-validáció.
+5. A **lista állandó** (configból) — a kliens nem választhat listát.
 
-```jsonc
-{
-  "uj-funnel-slug": {
-    "activecampaign": {
-      "production": { "list_id": 1, "tags": ["LM: UJ-FUNNEL", "FORRAS: kampany-x"] },
-      "sandbox":    { "list_id": 3, "tags": ["LM: UJ-FUNNEL"] }
-    },
-    "redirect_url": "https://valamelyik-domain.hu/koszonjuk/",
-    "allowed_origins": ["https://valamelyik-domain.hu"]
-  }
-}
-```
+**Erősen ajánlott (ActiveCampaign-ben):** kapcsold be a **dupla opt-in**-t a listán
+/ automáción. Ez a legnagyobb védelem — egy hamisított vagy spam feliratkozás nem
+válik valódi kontaktté, amíg a címzett nem kattint a megerősítő emailre.
 
-Az embed oldalán csak a `data-funnel="uj-funnel-slug"`-ot kell megadni.
-
-> **Cross-domain beágyazás:** ha a form egy másik domainen fut, az adott origint
-> tedd be a `LF_GLOBAL_ORIGINS`-ba (a böngésző preflight kérése miatt) **és** a
-> funnel `allowed_origins`-ába.
+**Opcionális, később:** láthatatlan CAPTCHA (Cloudflare Turnstile) botok ellen,
+illetve HMAC-kel aláírt `tag`+`redirect` („strict mode"), ha valahol maximális
+védelem kell.
 
 ---
 
@@ -213,17 +162,11 @@ A repó a *single source of truth*. A frissítési folyamat:
 
 1. Javítás / új funkció → commit ide.
 2. `npm version patch|minor|major` → frissül a `package.json` és git tag jön létre.
-3. `git push --follow-tags` → a **jsDelivr CDN** automatikusan kiszolgálja az új taget.
-4. **CDN-fogyasztók**: `@1`-re pinnelve a nem-törő frissítést automatikusan kapják.
-   Maximális biztonsághoz használj fix verziót + **SRI** hash-t:
-   ```html
-   <script
-     src="https://cdn.jsdelivr.net/gh/vikingokft/wpkurzus-lead-form@1.0.0/dist/lead-form.min.js"
-     integrity="sha384-…"  crossorigin="anonymous"></script>
-   ```
-   Az SRI hash kiszámítása egy kiadott fájlra:
+3. `git push && git push --tags` → a **jsDelivr CDN** automatikusan kiszolgálja.
+4. **CDN-fogyasztók**: `@2`-re pinnelve a nem-törő frissítést automatikusan kapják.
+   Maximális biztonsághoz fix verzió + **SRI** hash:
    ```bash
-   curl -s https://cdn.jsdelivr.net/gh/vikingokft/wpkurzus-lead-form@1.0.0/dist/lead-form.min.js \
+   curl -s https://cdn.jsdelivr.net/gh/vikingokft/wpkurzus-lead-form@2.0.0/dist/lead-form.min.js \
      | openssl dgst -sha384 -binary | openssl base64 -A
    ```
 5. **npm-fogyasztók**: `npm update @wpkurzus/lead-form`.

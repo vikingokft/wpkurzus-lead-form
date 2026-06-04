@@ -1,17 +1,17 @@
 /**
  * @wpkurzus/lead-form — belépési pont.
  *
- * Kétféle használat ugyanabból a bundle-ből:
+ * Az API végpont BE VAN ÉGETVE (DEFAULT_API) — beemeléskor csak a `tag`-et és a
+ * `redirect`-et kell megadni (mindkettő KÖTELEZŐ).
  *
  * 1) Auto-init (CDN / WordPress / statikus HTML):
- *    <div data-lead-form data-api="..." data-funnel="..."></div>
+ *    <div data-lead-form data-tag="LM: ..." data-redirect="https://.../koszi/"></div>
  *    <script src=".../lead-form.min.js"></script>
- *    → a bundle betöltéskor felscan-eli a [data-lead-form] elemeket.
  *
  * 2) Programozott (npm / React / Vite / Next):
  *    import { LeadForm } from "@wpkurzus/lead-form";
  *    import "@wpkurzus/lead-form/styles";
- *    LeadForm.init("#mount", { api, funnel, tracking, ... });
+ *    LeadForm.init("#mount", { tag: "LM: ...", redirect: "https://.../koszi/" });
  */
 
 import cssText from "../styles/lead-form.css";
@@ -19,6 +19,10 @@ import { renderForm } from "./render.js";
 import { bindForm } from "./form.js";
 import { initEmailAutocomplete } from "./autocomplete.js";
 import { getEmailError, isValidEmail, EMAIL_DOMAINS } from "./validation.js";
+
+// A központi feliratkozási végpont — beégetve, hogy beemeléskor ne kelljen megadni.
+// Felülírható: data-api="..." vagy init({ api: "..." }).
+const DEFAULT_API = "https://api.vikingodev.hu/lead/v1/subscribe.php";
 
 const STYLE_ID = "lf-styles";
 
@@ -47,8 +51,9 @@ function parseJSON(value, fallback) {
 function cfgFromElement(el) {
   const d = el.dataset;
   return {
-    api: d.api,
-    funnel: d.funnel,
+    api: d.api, // opcionális — alapból a beégetett DEFAULT_API
+    tag: d.tag, // KÖTELEZŐ
+    redirect: d.redirect, // KÖTELEZŐ (köszönő oldal URL-je)
     cta: d.cta,
     formTitle: d.formTitle,
     placeholder: d.placeholder,
@@ -56,22 +61,33 @@ function cfgFromElement(el) {
     gdprHtml: d.gdprHtml, // ha jelen van, felülírja az alapértelmezettet
     noteHtml: d.noteHtml,
     successMessage: d.successMessage,
-    redirect: d.redirect === "false" ? false : undefined,
     tracking: parseJSON(d.tracking, null),
     messages: parseJSON(d.messages, null),
   };
 }
 
-function validateConfig(cfg) {
-  if (!cfg.api) {
-    console.error("[lead-form] Hiányzó kötelező mező: api (data-api).");
-    return false;
-  }
-  if (!cfg.funnel) {
-    console.error("[lead-form] Hiányzó kötelező mező: funnel (data-funnel).");
-    return false;
-  }
-  return true;
+// Visszaadja a hiányzó kötelező mezők listáját (üres = OK).
+function missingRequired(cfg) {
+  const missing = [];
+  if (!cfg.tag) missing.push("tag (data-tag)");
+  if (!cfg.redirect) missing.push("redirect (data-redirect)");
+  return missing;
+}
+
+// Fejlesztőnek szóló, jól látható hibadoboz a mount elembe.
+function renderConfigError(mount, missing) {
+  const msg =
+    "lead-form: hiányzó kötelező mező — " +
+    missing.join(", ") +
+    ". Példa: <div data-lead-form data-tag=\"LM: PELDA\" " +
+    'data-redirect="https://wpkurzus.hu/.../koszi/"></div>';
+  console.error("[lead-form] " + msg);
+  mount.innerHTML =
+    '<div style="font-family:system-ui,sans-serif;font-size:13px;line-height:1.5;' +
+    "color:#7f1d1d;background:#fef2f2;border:1px solid #fca5a5;border-radius:10px;" +
+    'padding:12px 14px">⚠️ <strong>lead-form beállítási hiba</strong><br>Hiányzik: ' +
+    missing.map((m) => "<code>" + m + "</code>").join(", ") +
+    "</div>";
 }
 
 /**
@@ -89,7 +105,14 @@ function init(target, cfg = {}) {
     return null;
   }
   if (mount.dataset.lfInitialized === "1") return mount.querySelector("form");
-  if (!validateConfig(cfg)) return null;
+
+  const missing = missingRequired(cfg);
+  if (missing.length) {
+    renderConfigError(mount, missing);
+    return null;
+  }
+  // API végpont: megadott vagy a beégetett alapértelmezett.
+  cfg.api = cfg.api || DEFAULT_API;
 
   const form = renderForm(mount, cfg);
   bindForm(form, cfg);

@@ -1,53 +1,45 @@
 <?php
 /**
- * @wpkurzus/lead-form — szerver oldali konfiguráció (FALLBACK).
+ * @wpkurzus/lead-form — szerver oldali konfiguráció (v2).
  *
  * ┌─────────────────────────────────────────────────────────────────────────┐
- * │ FONTOS: élesben AJÁNLOTT a környezeti változós megoldás (lásd lent),      │
- * │ ekkor erre a fájlra NINCS is szükség — a kulcs egyetlen fájlban sem lesz. │
+ * │ Élesben AJÁNLOTT a környezeti változós megoldás (ekkor erre a fájlra      │
+ * │ nincs is szükség). Ha fájlt használsz, tedd a WEB ROOT FÖLÉ lf-config.php │
+ * │ néven. SOHA ne commitold (a .gitignore kizárja).                          │
  * └─────────────────────────────────────────────────────────────────────────┘
  *
- * A subscribe.php a következő sorrendben keresi a konfigurációt
- * (legbiztonságosabb előre):
+ * A subscribe.php sorrendje: (1) env-változók → (2) lf-config.php a web root
+ * fölött → (3) config.php a végpont mellett (csak fejlesztéshez).
  *
- *   1) KÖRNYEZETI VÁLTOZÓK  ← AJÁNLOTT
- *      Állítsd be a tárhely vezérlőpultjában / PHP-FPM pool configban / rendszer-
- *      env-ben. A kulcs így SEMMILYEN fájlban nincs a deploy alatt:
- *        AC_API_URL=https://youraccount.api-us1.com
- *        AC_API_KEY=ide-jon-a-kulcs
- *        AC_ENV=production
- *        LF_GLOBAL_ORIGINS=https://wpkurzus.hu,https://www.wpkurzus.hu,https://vikingo.hu
- *        LF_REGISTRY_PATH=/var/secure/funnels.json   (opcionális — web root fölé)
- *
- *   2) lf-config.php a WEB ROOT FÖLÖTT  ← ha nincs env
- *      Tedd ezt a fájlt a web root fölé `lf-config.php` néven. HTTP-n elérhetetlen,
- *      a subscribe.php felfelé keresve megtalálja.
- *
- *   3) config.php a végpont mellett  ← CSAK fejlesztéshez
- *      A .htaccess letiltja a direkt HTTP-hozzáférést, de élesben kerüld.
- *
- * Másold át a választott helyre, és SOHA ne commitold (a .gitignore kizárja).
+ * Env-változós alternatíva:
+ *   AC_API_URL, AC_API_KEY, AC_ENV, LF_LIST_ID, LF_SANDBOX_LIST_ID,
+ *   LF_GLOBAL_ORIGINS (vesszővel)
  */
 
 // ActiveCampaign API hozzáférés
 define('AC_API_URL', 'https://youraccount.api-us1.com');
 define('AC_API_KEY', 'ide-jon-az-api-kulcs');
 
-// Környezet: 'production' vagy 'sandbox' — eldönti, melyik AC list_id/tagek
-// érvényesek a funnels.json-ból.
+// Környezet: 'production' vagy 'sandbox'
 define('AC_ENV', 'production');
 
-// Globális engedélyezett originek MINDEN funnelhez (a CSRF/CORS allowlist alapja).
-// A központi API (api.vikingodev.hu) cross-domain hívásokat fogad a fogyasztó
-// oldalakról — minden ilyen origint IDE kell tenni, hogy a böngésző preflight
-// (OPTIONS) kérése is átmenjen. Új oldal indításakor csak bővítsd a listát.
+// ÁLLANDÓ listák (a feliratkozó MINDIG ezekre kerül, környezet szerint).
+// A funnelt a beágyazásból érkező TAG különbözteti meg, nem a lista.
+define('LF_LIST_ID', 1);          // production — "WPKurzus Fő lista"
+define('LF_SANDBOX_LIST_ID', 3);  // sandbox
+
+// Engedélyezett oldalak (CSRF/CORS allowlist). Cross-domain beágyazásnál minden
+// origint IDE kell tenni (a böngésző preflight kérése miatt). A redirect URL is
+// csak ezekre a domainekre mutathat (open-redirect védelem).
 define('LF_GLOBAL_ORIGINS', [
     'https://wpkurzus.hu',
     'https://www.wpkurzus.hu',
-    'https://vikingo.hu',       // jövőbeli oldal — előre felvéve
+    'https://vikingo.hu',
     'https://www.vikingo.hu',
-    'http://localhost:3000',    // helyi fejlesztés
+    'http://localhost:3000',
 ]);
 
-// Opcionális: a registry (funnels.json) áthelyezése a web root fölé.
-// define('LF_REGISTRY_PATH', dirname(__DIR__, 4) . '/funnels.json');
+// Engedélyezett tag-prefixek (biztonság: a beküldött tag csak ilyennel kezdődhet,
+// így egy hamisított kérés sem rakhat tetszőleges, érzékeny taget). Üres tömb =
+// nincs prefix-korlát (csak karakterkészlet + max hossz érvényes).
+define('LF_TAG_PREFIXES', ['LM:']);
