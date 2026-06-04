@@ -46,7 +46,7 @@ Tedd be az üres mount-divet, és töltsd be a scriptet egyszer:
 ```html
 <div
   data-lead-form
-  data-api="https://wpkurzus.hu/ingyenes/api/subscribe.php"
+  data-api="https://api.vikingodev.hu/lead/v1/subscribe.php"
   data-funnel="50-kerdes-webdesign"
   data-form-title="Töltsd le ingyen!"
   data-cta="Letöltöm"
@@ -77,7 +77,7 @@ export function Optin() {
   const ref = useRef(null);
   useEffect(() => {
     LeadForm.init(ref.current, {
-      api: "https://wpkurzus.hu/ingyenes/api/subscribe.php",
+      api: "https://api.vikingodev.hu/lead/v1/subscribe.php",
       funnel: "50-kerdes-webdesign",
       tracking: { funnel_id: "50-kerdes-webdesign", funnel_name: "50 kérdés webdesign", lead_source: "lead-magnet", lead_type: "munkafuzet" },
     });
@@ -125,14 +125,31 @@ A host oldalon felülírhatod a CSS-változókat — nincs fork, nincs kódmáso
 
 ## Backend telepítés (központi, egyszer)
 
-A `api/` mappa egy hordozható PHP végpont. A `wpkurzus.hu` szerverén:
+A `api/` mappa egy hordozható PHP végpont (curl-t használ). A **központi deploy
+a `api.vikingodev.hu` aldoménre** kerül, verziózott útvonalon — így minden oldal
+(wpkurzus.hu, vikingo.hu, jövőbeli) ugyanazt az egy API-t hívja.
 
-1. **Másold fel** a `api/subscribe.php`-t (pl. `/ingyenes/api/subscribe.php`).
-2. **Config**: `api/config.example.php` → `config.php` (vagy a web root fölé `lf-config.php`),
-   töltsd ki az AC kulcsokkal és a `LF_GLOBAL_ORIGINS`-t.
+Ajánlott elrendezés a szerveren:
+
+```
+web root (api.vikingodev.hu/)
+└── lead/
+    └── v1/
+        ├── subscribe.php      ← https://api.vikingodev.hu/lead/v1/subscribe.php
+        ├── config.php         ← AC kulcsok (vagy a web root FÖLÉ: lf-config.php)
+        └── funnels.json       ← tag/lista registry
+```
+
+1. **Másold fel** a `api/subscribe.php`-t a `lead/v1/` mappába.
+2. **Config**: `api/config.example.php` → `config.php` (biztonságosabb a web root
+   fölé `lf-config.php` néven — a végpont felfelé keresve automatikusan megtalálja),
+   töltsd ki az AC kulcsokkal, az `AC_ENV`-et és a `LF_GLOBAL_ORIGINS`-t.
 3. **Registry**: `api/funnels.example.json` → `funnels.json`, vedd fel a funneleket.
 
 Egyik titkos fájl sem commitolódik (lásd `.gitignore`).
+
+> **Verziózott út:** a végpont a `/lead/v1/` alatt él. Ha valaha törő változás
+> kell a backendben, a `/lead/v2/` mehet párhuzamosan, a régi kliensek nem törnek el.
 
 ### Új form / új tag felvétele
 

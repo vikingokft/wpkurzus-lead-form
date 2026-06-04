@@ -17,9 +17,13 @@ define('AC_API_KEY', 'ide-jon-az-api-kulcs');
 define('AC_ENV', 'production');
 
 // Globális engedélyezett originek MINDEN funnelhez (a CSRF/CORS allowlist alapja).
-// Cross-domain beágyazásnál (pl. más domainen futó React) IDE kell tenni az
-// origint, hogy a böngésző preflight (OPTIONS) kérése is átmenjen.
+// A központi API (api.vikingodev.hu) cross-domain hívásokat fogad a fogyasztó
+// oldalakról — minden ilyen origint IDE kell tenni, hogy a böngésző preflight
+// (OPTIONS) kérése is átmenjen. Új oldal indításakor csak bővítsd a listát.
 define('LF_GLOBAL_ORIGINS', [
     'https://wpkurzus.hu',
-    'http://localhost:3000',
+    'https://www.wpkurzus.hu',
+    'https://vikingo.hu',       // jövőbeli oldal — előre felvéve
+    'https://www.vikingo.hu',
+    'http://localhost:3000',    // helyi fejlesztés
 ]);

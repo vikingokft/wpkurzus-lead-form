@@ -20,7 +20,7 @@ export function LeadFormWidget() {
   useEffect(() => {
     if (!ref.current) return;
     LeadForm.init(ref.current, {
-      api: "https://wpkurzus.hu/ingyenes/api/subscribe.php",
+      api: "https://api.vikingodev.hu/lead/v1/subscribe.php",
       funnel: "50-kerdes-webdesign",
       formTitle: "Töltsd le ingyen!",
       cta: "Letöltöm",

@@ -28,11 +28,22 @@ function lf_respond($code, $payload) {
 }
 
 // --- Konfiguráció betöltése (web root felett, fallback helyben) ---
-$configPath = dirname(__DIR__, 3) . '/lf-config.php';
-if (!file_exists($configPath)) {
+// Először a web root FÖLÖTT keressük a titkos `lf-config.php`-t (a végpont
+// útvonalának mélységétől függetlenül, max 6 szint felfelé), majd fallback a
+// végponttal egy mappában lévő `config.php`-ra (fejlesztéshez).
+$configPath = null;
+$dir = __DIR__;
+for ($i = 0; $i < 6; $i++) {
+    $dir = dirname($dir);
+    if (file_exists($dir . '/lf-config.php')) {
+        $configPath = $dir . '/lf-config.php';
+        break;
+    }
+}
+if (!$configPath && file_exists(__DIR__ . '/config.php')) {
     $configPath = __DIR__ . '/config.php';
 }
-if (!file_exists($configPath)) {
+if (!$configPath) {
     lf_respond(500, ['success' => false, 'error' => 'Szerver konfigurációs hiba.']);
 }
 require_once $configPath;
