@@ -6,6 +6,19 @@ A jelölés a [Semantic Versioning](https://semver.org/lang/hu/) szerint:
 A CDN-fogyasztók `@1`-re pinnelve automatikusan kapják a MINOR és PATCH
 frissítéseket; a MAJOR (törő) verziót kézzel kell emelni.
 
+## [1.0.1] — backend biztonsági hardening
+
+### Hozzáadva
+- `.htaccess` az `api/` mappában: minden direkt HTTP-hozzáférés tiltva a `subscribe.php`-n
+  kívül (funnels.json, config.php, .example, docs nem érhető el böngészőből).
+- **Környezeti változós konfiguráció** (`AC_API_URL`, `AC_API_KEY`, `AC_ENV`,
+  `LF_GLOBAL_ORIGINS`) — élesben a kulcs egyetlen fájlban sem szerepel.
+- `LF_REGISTRY_PATH`: a `funnels.json` áthelyezhető a web root fölé.
+- `Referrer-Policy: no-referrer` válasz fejléc.
+
+### Megjegyzés
+- A JS bundle változatlan (a CDN `@1.0.0` és `@1.0.1` byte-azonos).
+
 ## [1.0.0] — kezdeti kiadás
 
 ### Hozzáadva

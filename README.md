@@ -132,24 +132,53 @@ a `api.vikingodev.hu` aldoménre** kerül, verziózott útvonalon — így minde
 Ajánlott elrendezés a szerveren:
 
 ```
+(web root FÖLÖTT)
+├── lf-config.php             ← AC kulcsok (ha NEM env-változót használsz)
+└── funnels.json              ← registry (opcionálisan ide, LF_REGISTRY_PATH-szal)
+
 web root (api.vikingodev.hu/)
 └── lead/
     └── v1/
-        ├── subscribe.php      ← https://api.vikingodev.hu/lead/v1/subscribe.php
-        ├── config.php         ← AC kulcsok (vagy a web root FÖLÉ: lf-config.php)
-        └── funnels.json       ← tag/lista registry
+        ├── subscribe.php     ← https://api.vikingodev.hu/lead/v1/subscribe.php
+        ├── .htaccess         ← hardening: csak a subscribe.php hívható HTTP-n
+        └── funnels.json      ← registry (ha nem a web root fölött van)
 ```
 
-1. **Másold fel** a `api/subscribe.php`-t a `lead/v1/` mappába.
-2. **Config**: `api/config.example.php` → `config.php` (biztonságosabb a web root
-   fölé `lf-config.php` néven — a végpont felfelé keresve automatikusan megtalálja),
-   töltsd ki az AC kulcsokkal, az `AC_ENV`-et és a `LF_GLOBAL_ORIGINS`-t.
+1. **Másold fel** a `api/subscribe.php`-t és a `api/.htaccess`-t a `lead/v1/` mappába.
+2. **Config** — válassz (lásd [Biztonság](#biztonság)):
+   - **(ajánlott)** állítsd be env-változóként az `AC_API_URL`, `AC_API_KEY`, `AC_ENV`,
+     `LF_GLOBAL_ORIGINS` értékeket → semmilyen kulcs nem kerül fájlba;
+   - **vagy** `api/config.example.php` → `lf-config.php` a **web root fölé**.
 3. **Registry**: `api/funnels.example.json` → `funnels.json`, vedd fel a funneleket.
 
 Egyik titkos fájl sem commitolódik (lásd `.gitignore`).
 
 > **Verziózott út:** a végpont a `/lead/v1/` alatt él. Ha valaha törő változás
 > kell a backendben, a `/lead/v2/` mehet párhuzamosan, a régi kliensek nem törnek el.
+
+### Biztonság
+
+Több, egymásra épülő réteg védi a titkokat (defense-in-depth):
+
+1. **Kulcsok tárolása — env-változó az elsődleges.** A `subscribe.php` ebben a
+   sorrendben keresi a configot: **(1) környezeti változók** → **(2) `lf-config.php`
+   a web root fölött** → **(3) `config.php` a végpont mellett (csak fejlesztéshez)**.
+   Élesben az env-változó az ajánlott: így a kulcs *egyetlen fájlban sincs* a deploy
+   alatt. A „PHP fájlban tárolt kulcs" csak akkor kockázatos, ha a web rootban van —
+   a web root **fölött** lévő `.php` HTTP-n elérhetetlen és közvetlen hívásra sem ad
+   ki semmit, de az env-változó ennél is tisztább.
+2. **`.htaccess` hardening.** A mellékelt `api/.htaccess` letilt **minden** direkt
+   HTTP-hozzáférést a `subscribe.php`-n kívül — így a `funnels.json`, `config.php`,
+   `.example` és dokumentációs fájlok böngészőből nem érhetők el. (A PHP szerver
+   oldalon olvassa őket, azt ez nem érinti.)
+3. **A registry web root fölé tehető** — `LF_REGISTRY_PATH` env/define-nal.
+4. **Beépített védelmek a kódban**: CSRF/Origin allowlist, CORS preflight, fájl-alapú
+   rate limiting (5 kérés/perc/IP), 10KB payload limit, SSL verifikáció (peer+host),
+   és a tagek kizárólag szerver oldali feloldása (a kliens sosem küld taget).
+
+> **nginx tárhely?** A `.htaccess` csak Apache alatt érvényesül. nginx esetén tedd a
+> `funnels.json`-t és a configot a web root fölé (vagy a `server` blokkba:
+> `location ~ /lead/v1/(funnels\.json|config\.php) { deny all; }`).
 
 ### Új form / új tag felvétele
 

@@ -20,6 +20,7 @@
 
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
+header('Referrer-Policy: no-referrer');
 
 function lf_respond($code, $payload) {
     http_response_code($code);
@@ -27,26 +28,54 @@ function lf_respond($code, $payload) {
     exit;
 }
 
-// --- Konfiguráció betöltése (web root felett, fallback helyben) ---
-// Először a web root FÖLÖTT keressük a titkos `lf-config.php`-t (a végpont
-// útvonalának mélységétől függetlenül, max 6 szint felfelé), majd fallback a
-// végponttal egy mappában lévő `config.php`-ra (fejlesztéshez).
-$configPath = null;
-$dir = __DIR__;
-for ($i = 0; $i < 6; $i++) {
-    $dir = dirname($dir);
-    if (file_exists($dir . '/lf-config.php')) {
-        $configPath = $dir . '/lf-config.php';
-        break;
+// Környezeti változó olvasása (getenv + $_SERVER fallback FPM/SetEnv esetére).
+function lf_env($key) {
+    $v = getenv($key);
+    if ($v !== false && $v !== '') return $v;
+    if (isset($_SERVER[$key]) && $_SERVER[$key] !== '') return $_SERVER[$key];
+    return null;
+}
+
+// --- Konfiguráció betöltése ---
+// Biztonsági sorrend (legbiztonságosabb előre):
+//   1) Környezeti változók (AC_API_URL, AC_API_KEY, ...) — a kulcs SEMMILYEN
+//      fájlban nincs a deploy alatt. EZ AZ AJÁNLOTT élesben.
+//   2) `lf-config.php` a web root FÖLÖTT (HTTP-n elérhetetlen).
+//   3) `config.php` a végpont mellett (csak fejlesztéshez; .htaccess védi).
+$acApiUrl = lf_env('AC_API_URL');
+$acApiKey = lf_env('AC_API_KEY');
+
+if ($acApiUrl && $acApiKey) {
+    define('AC_API_URL', $acApiUrl);
+    define('AC_API_KEY', $acApiKey);
+    define('AC_ENV', lf_env('AC_ENV') ?: 'production');
+    // Vesszővel elválasztott originek az env-ből.
+    $envOrigins = lf_env('LF_GLOBAL_ORIGINS');
+    if ($envOrigins) {
+        define('LF_GLOBAL_ORIGINS', array_values(array_filter(array_map('trim', explode(',', $envOrigins)))));
     }
+} else {
+    $configPath = null;
+    $dir = __DIR__;
+    for ($i = 0; $i < 6; $i++) {
+        $dir = dirname($dir);
+        if (file_exists($dir . '/lf-config.php')) {
+            $configPath = $dir . '/lf-config.php';
+            break;
+        }
+    }
+    if (!$configPath && file_exists(__DIR__ . '/config.php')) {
+        $configPath = __DIR__ . '/config.php';
+    }
+    if (!$configPath) {
+        lf_respond(500, ['success' => false, 'error' => 'Szerver konfigurációs hiba.']);
+    }
+    require_once $configPath;
 }
-if (!$configPath && file_exists(__DIR__ . '/config.php')) {
-    $configPath = __DIR__ . '/config.php';
-}
-if (!$configPath) {
+
+if (!defined('AC_API_URL') || !defined('AC_API_KEY') || AC_API_KEY === '') {
     lf_respond(500, ['success' => false, 'error' => 'Szerver konfigurációs hiba.']);
 }
-require_once $configPath;
 
 $globalOrigins = defined('LF_GLOBAL_ORIGINS') ? LF_GLOBAL_ORIGINS : [];
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
@@ -72,7 +101,11 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
 }
 
 // --- Registry betöltése (funnel → list_id + tagek) ---
-$registryPath = __DIR__ . '/funnels.json';
+// A registry helye felülírható env-ből vagy a configból (LF_REGISTRY_PATH),
+// hogy a web root FÖLÉ tehető legyen. Alapból a végpont mellett (a .htaccess
+// letiltja a direkt HTTP-hozzáférést hozzá).
+$registryPath = lf_env('LF_REGISTRY_PATH')
+    ?: (defined('LF_REGISTRY_PATH') ? LF_REGISTRY_PATH : __DIR__ . '/funnels.json');
 if (!file_exists($registryPath)) {
     lf_respond(500, ['success' => false, 'error' => 'Funnel registry nem található.']);
 }

@@ -1,0 +1,72 @@
+# =============================================================================
+# @wpkurzus/lead-form — API biztonsági hardening (Apache)
+#
+# Ezt a fájlt a végponttal AZONOS mappába kell tenni (pl. lead/v1/.htaccess).
+# Csak a subscribe.php hívható HTTP-n; minden más (config.php, funnels.json,
+# .example fájlok, dokumentáció) le van tiltva. A config.php-t és a
+# funnels.json-t a PHP szerver oldalon olvassa (include / file_get_contents),
+# amit ez NEM blokkol — csak a böngészőből jövő direkt kéréseket.
+#
+# Megjegyzés: ha a tárhely nginx-et használ, lásd a README "Biztonság" szekciót
+# az ekvivalens nginx szabályokhoz (.htaccess ott nem érvényesül).
+# =============================================================================
+
+# Könyvtárlistázás kikapcsolása
+Options -Indexes
+
+# Szerver-aláírás elrejtése
+ServerSignature Off
+
+# --- Hozzáférés-szabályozás (Apache 2.4) ---
+<IfModule mod_authz_core.c>
+    # Alapból MINDEN tiltva ebben a mappában...
+    <FilesMatch ".*">
+        Require all denied
+    </FilesMatch>
+    # ...kivéve a tényleges végpont.
+    <Files "subscribe.php">
+        Require all granted
+    </Files>
+</IfModule>
+
+# --- Fallback Apache 2.2-re ---
+<IfModule !mod_authz_core.c>
+    <FilesMatch ".*">
+        Order allow,deny
+        Deny from all
+    </FilesMatch>
+    <Files "subscribe.php">
+        Order allow,deny
+        Allow from all
+    </Files>
+</IfModule>
+
+# --- Biztonsági fejlécek (ha a mod_headers elérhető) ---
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set Referrer-Policy "no-referrer"
+</IfModule>
+
+# --- Érzékeny fájlok explicit tiltása (defense-in-depth) ---
+# Akkor is véd, ha valaki a subscribe.php tiltását valahogy feloldaná.
+<FilesMatch "\.(json|md|map|example\.php|example\.json|ini|log|sh|yml|yaml)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Dotfile-ok (pl. .htaccess, .env) tiltása
+<FilesMatch "^\.">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
