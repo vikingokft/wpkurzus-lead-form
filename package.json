@@ -1,6 +1,6 @@
 {
   "name": "@wpkurzus/lead-form",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Beágyazható, témázható lead-capture form okos email-validációval, domain autocomplete-tel, GDPR consenttel és ActiveCampaign backenddel. Single source of truth — egy helyen frissül, mindenhol átjön.",
   "type": "module",
   "main": "./dist/lead-form.esm.js",

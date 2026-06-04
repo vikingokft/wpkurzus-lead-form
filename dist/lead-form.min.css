@@ -188,25 +188,30 @@
   }
 }
 
-/* === GDPR consent === */
+/* === GDPR consent ===
+   Grid: a checkbox az 1. oszlopban, a címke ÉS a tájékoztató ugyanabban a 2.
+   oszlopban — így a két szöveg bal széle mindig egy vonalban van, a checkbox
+   méretétől függetlenül (nincs mágikus padding). */
 .lf-consent {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 0.75rem;
+  row-gap: 0.4rem;
+  align-items: start;
   padding: 0.25rem 0;
-}
-
-.lf-consent-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
 }
 
 .lf-consent-label,
 .lf-consent-note {
+  grid-column: 2;
   font-size: 11px;
   line-height: 1.35;
   cursor: pointer;
+}
+
+.lf-checkbox {
+  grid-column: 1;
+  grid-row: 1;
 }
 
 @media (min-width: 768px) {
@@ -215,11 +220,6 @@
     font-size: 0.75rem;
     line-height: 1.5;
   }
-}
-
-.lf-consent-note {
-  display: block;
-  padding-left: 2rem;
 }
 
 .lf-root--dark .lf-consent-label,

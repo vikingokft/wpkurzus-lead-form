@@ -6,6 +6,13 @@ A jelölés a [Semantic Versioning](https://semver.org/lang/hu/) szerint:
 A CDN-fogyasztók `@1`-re pinnelve automatikusan kapják a MINOR és PATCH
 frissítéseket; a MAJOR (törő) verziót kézzel kell emelni.
 
+## [1.0.2] — GDPR consent igazítás
+
+### Javítva
+- A consent címke és az alatta lévő tájékoztató szöveg bal széle most pontosan
+  egy vonalban van (CSS grid: checkbox az 1. oszlopban, mindkét szöveg a 2.-ban),
+  a korábbi mágikus `padding-left` helyett — checkbox-mérettől függetlenül igazodik.
+
 ## [1.0.1] — backend biztonsági hardening
 
 ### Hozzáadva

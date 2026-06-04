@@ -51,10 +51,8 @@ export function renderForm(mount, cfg) {
         <div class="lf-error" data-error="email" aria-live="polite"></div>
 
         <div class="lf-consent">
-          <div class="lf-consent-row">
-            <input type="checkbox" id="${id}-gdpr" name="gdpr" required class="lf-checkbox">
-            <label for="${id}-gdpr" class="lf-consent-label">${gdprHtml}</label>
-          </div>
+          <input type="checkbox" id="${id}-gdpr" name="gdpr" required class="lf-checkbox">
+          <label for="${id}-gdpr" class="lf-consent-label">${gdprHtml}</label>
           ${note}
         </div>
         <div class="lf-error" data-error="gdpr" aria-live="polite"></div>
