@@ -55,7 +55,7 @@ Tedd be az üres mount-divet, és töltsd be a scriptet egyszer:
 ></div>
 
 <script
-  src="https://cdn.jsdelivr.net/gh/wpviking/wpkurzus-lead-form@1/dist/lead-form.min.js"
+  src="https://cdn.jsdelivr.net/gh/vikingokft/wpkurzus-lead-form@1/dist/lead-form.min.js"
   crossorigin="anonymous"></script>
 ```
 
@@ -172,12 +172,12 @@ A repó a *single source of truth*. A frissítési folyamat:
    Maximális biztonsághoz használj fix verziót + **SRI** hash-t:
    ```html
    <script
-     src="https://cdn.jsdelivr.net/gh/wpviking/wpkurzus-lead-form@1.0.0/dist/lead-form.min.js"
+     src="https://cdn.jsdelivr.net/gh/vikingokft/wpkurzus-lead-form@1.0.0/dist/lead-form.min.js"
      integrity="sha384-…"  crossorigin="anonymous"></script>
    ```
    Az SRI hash kiszámítása egy kiadott fájlra:
    ```bash
-   curl -s https://cdn.jsdelivr.net/gh/wpviking/wpkurzus-lead-form@1.0.0/dist/lead-form.min.js \
+   curl -s https://cdn.jsdelivr.net/gh/vikingokft/wpkurzus-lead-form@1.0.0/dist/lead-form.min.js \
      | openssl dgst -sha384 -binary | openssl base64 -A
    ```
 5. **npm-fogyasztók**: `npm update @wpkurzus/lead-form`.
