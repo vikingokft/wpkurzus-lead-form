@@ -1,0 +1,33 @@
+<!--
+  WordPress / Elementor beágyazás
+  ================================
+
+  Tedd egy "Custom HTML" (Elementor: HTML widget) blokkba az alábbi két részt.
+  A <script>-et elég EGYSZER betölteni az oldalon (akár a téma footerébe is
+  rakhatod), a <div> pedig annyiszor szerepelhet, ahány form kell.
+
+  FONTOS: a data-funnel értékének léteznie kell a szerver funnels.json-jában
+  (ott vannak a tagek és a lista definiálva).
+-->
+
+<div
+  data-lead-form
+  data-api="https://wpkurzus.hu/ingyenes/api/subscribe.php"
+  data-funnel="50-kerdes-webdesign"
+  data-form-title="Kérem az ingyenes anyagot!"
+  data-cta="Feliratkozom"
+  data-theme="dark"
+  data-tracking='{"funnel_id":"50-kerdes-webdesign","funnel_name":"50 kérdés webdesign","lead_source":"lead-magnet","lead_type":"munkafuzet"}'
+></div>
+
+<script
+  src="https://cdn.jsdelivr.net/gh/wpviking/wpkurzus-lead-form@1/dist/lead-form.min.js"
+  crossorigin="anonymous"></script>
+
+<!--
+  Témázás (opcionális) — írd felül a brand színeket az adott oldalon:
+
+  <style>
+    .lf-root { --lf-primary: #F56F46; --lf-primary-hover: #EA5624; }
+  </style>
+-->

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lead form — statikus HTML példa</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #f5f6fc; margin: 0; padding: 3rem 1rem; }
+    .demo { max-width: 640px; margin: 0 auto; }
+    h1 { color: #25273e; }
+  </style>
+</head>
+<body>
+  <div class="demo">
+    <h1>Feliratkozó form — beágyazva</h1>
+
+    <!--
+      1) Tedd be ezt az üres divet oda, ahol a formot szeretnéd.
+      2) Töltsd ki az adatokat (data-api, data-funnel kötelező).
+      3) Illeszd be a <script>-et (lehetőleg verzióra pinnelve + SRI hash-sel).
+    -->
+    <div
+      data-lead-form
+      data-api="https://wpkurzus.hu/ingyenes/api/subscribe.php"
+      data-funnel="50-kerdes-webdesign"
+      data-form-title="Töltsd le ingyen!"
+      data-cta="Letöltöm"
+      data-theme="dark"
+      data-tracking='{"funnel_id":"50-kerdes-webdesign","funnel_name":"50 kérdés webdesign","lead_source":"lead-magnet","lead_type":"munkafuzet"}'
+    ></div>
+  </div>
+
+  <!-- Helyi build teszteléshez: -->
+  <script src="../dist/lead-form.min.js"></script>
+
+  <!-- Élesben CDN-ről, verzióra pinnelve (példa):
+  <script
+    src="https://cdn.jsdelivr.net/gh/wpviking/wpkurzus-lead-form@1/dist/lead-form.min.js"
+    crossorigin="anonymous"></script>
+  -->
+</body>
+</html>

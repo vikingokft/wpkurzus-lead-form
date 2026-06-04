@@ -1,0 +1,9 @@
+node_modules/
+*.log
+.DS_Store
+
+# Éles titkok / konfiguráció — SOHA nem commitoljuk
+api/config.php
+api/funnels.json
+
+# A dist/ SZÁNDÉKOSAN commitolva van (a jsDelivr CDN innen szolgálja ki).

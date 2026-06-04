@@ -1,0 +1,33 @@
+{
+  "_comment": "Másold át funnels.json néven és töltsd fel a szerverre. Minden kulcs egy funnel/form. A tageket ITT határozod meg külön funnelenként — a kliens NEM küldhet taget. Új form = új bejegyzés.",
+
+  "50-kerdes-webdesign": {
+    "activecampaign": {
+      "production": {
+        "list_id": 1,
+        "tags": ["LM: 50-KERDES-WEBDESIGN"]
+      },
+      "sandbox": {
+        "list_id": 3,
+        "tags": ["LM: 50-KERDES-WEBDESIGN"]
+      }
+    },
+    "redirect_url": "https://wpkurzus.hu/ingyenes/50-kerdes-webdesign/koszi/",
+    "allowed_origins": ["https://wpkurzus.hu"]
+  },
+
+  "masik-rendszer-pelda": {
+    "activecampaign": {
+      "production": {
+        "list_id": 1,
+        "tags": ["LM: MASIK-RENDSZER", "FORRAS: kulso-oldal"]
+      },
+      "sandbox": {
+        "list_id": 3,
+        "tags": ["LM: MASIK-RENDSZER"]
+      }
+    },
+    "redirect_url": "https://masik-rendszer.hu/koszonjuk/",
+    "allowed_origins": ["https://masik-rendszer.hu", "https://www.masik-rendszer.hu"]
+  }
+}

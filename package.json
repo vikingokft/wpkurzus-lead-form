@@ -1,0 +1,43 @@
+{
+  "name": "@wpkurzus/lead-form",
+  "version": "1.0.0",
+  "description": "Beágyazható, témázható lead-capture form okos email-validációval, domain autocomplete-tel, GDPR consenttel és ActiveCampaign backenddel. Single source of truth — egy helyen frissül, mindenhol átjön.",
+  "type": "module",
+  "main": "./dist/lead-form.esm.js",
+  "module": "./dist/lead-form.esm.js",
+  "types": "./dist/lead-form.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/lead-form.d.ts",
+      "import": "./dist/lead-form.esm.js",
+      "default": "./dist/lead-form.esm.js"
+    },
+    "./styles": "./dist/lead-form.min.css",
+    "./dist/*": "./dist/*"
+  },
+  "files": [
+    "dist",
+    "src",
+    "api",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "node build.mjs",
+    "dev": "node build.mjs --watch"
+  },
+  "keywords": [
+    "lead-capture",
+    "optin",
+    "form",
+    "activecampaign",
+    "gdpr",
+    "wpkurzus"
+  ],
+  "author": "WPViking Kft.",
+  "license": "UNLICENSED",
+  "private": false,
+  "devDependencies": {
+    "esbuild": "^0.21.5"
+  }
+}
