@@ -6,6 +6,18 @@ A jelölés a [Semantic Versioning](https://semver.org/lang/hu/) szerint:
 A CDN-fogyasztók `@1`-re pinnelve automatikusan kapják a MINOR és PATCH
 frissítéseket; a MAJOR (törő) verziót kézzel kell emelni.
 
+## [2.2.0] — Turnstile alapból kikapcsolva
+
+### Megváltozott
+- **A Cloudflare Turnstile ALAPBÓL KI van kapcsolva** (`DEFAULT_TURNSTILE_SITEKEY = ""`).
+  A korábban beégetett site key eltávolítva, így a widget alapból **nem** jelenít meg
+  Turnstile-t és **nem** küld tokent. Bekapcsolható per-beágyazás (`data-turnstile-sitekey`
+  / `turnstileSitekey`), vagy globálisan a default konstans kitöltésével.
+- **Figyelem (token-párosítás):** ha a szerver `lf-config.php`-jában be van állítva
+  `LF_TURNSTILE_SECRET`, de a widget nem küld tokent (mert a sitekey üres), a beküldés
+  **400 „Hiányzó botvédelmi token"** hibát ad. A Turnstile teljes kivételéhez a szerverről
+  is el kell távolítani a `LF_TURNSTILE_SECRET`-et.
+
 ## [2.1.1] — Turnstile site key beégetve
 
 - A WPViking Turnstile **site key** (publikus) beégetve a `DEFAULT_TURNSTILE_SITEKEY`-be,
