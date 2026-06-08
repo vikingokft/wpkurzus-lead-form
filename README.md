@@ -104,22 +104,74 @@ Az `api/subscribe.php` az egyetlen szerver oldali komponens — kell, mert az AC
 API-kulcs nem kerülhet böngészőbe. **Nincs registry, nincs admin**: a beágyazás
 adja a `tag`-et és a `redirect`-et, a **lista állandó** (a configból).
 
-Ajánlott elrendezés a `api.vikingodev.hu`-n:
+Élő példány: **`https://api.vikingodev.hu/lead/v1/subscribe.php`** — ide POST-ol a widget.
 
+### Telepítés
+
+1. **Másold fel** a `api/subscribe.php`-t és a `api/.htaccess`-t a `lead/v1/`-be.
+2. **Hozd létre a configot** (lásd lent: hová, milyen néven, mit tartalmazzon).
+
+### Hol és milyen néven legyen a config (FONTOS)
+
+A `subscribe.php` ebben a sorrendben keresi a configot:
+
+1. **Env-változók** (`AC_API_URL`, `AC_API_KEY`, …) — ha vannak, **ezek nyernek** (a fájlt ekkor nem is olvassa).
+2. **`lf-config.php` a SZÜLŐ mappákban** (a végpont fölött, akár a web root fölött).
+3. **`config.php` UGYANABBAN a mappában**, mint a `subscribe.php` (fallback).
+
+Ebből két ajánlott elrendezés:
+
+**A) Web root fölött — legbiztonságosabb (ajánlott):**
 ```
 (web root FÖLÖTT)
-└── lf-config.php           ← AC kulcs + állandó lista + engedélyezett originek
-
+└── lf-config.php           ← AC fiók(ok) + listák + originek
 web root (api.vikingodev.hu/)
 └── lead/v1/
     ├── subscribe.php       ← https://api.vikingodev.hu/lead/v1/subscribe.php
     └── .htaccess           ← csak a subscribe.php hívható HTTP-n
 ```
 
-1. **Másold fel** a `api/subscribe.php`-t és a `api/.htaccess`-t a `lead/v1/`-be.
-2. **Config**: env-változók **vagy** `api/config.example.php` → `lf-config.php` a
-   web root fölé. Töltsd ki: `AC_API_URL`, `AC_API_KEY`, `AC_ENV`, `LF_LIST_ID`,
-   `LF_SANDBOX_LIST_ID`, `LF_GLOBAL_ORIGINS`, `LF_TAG_PREFIXES`.
+**B) A végpont mellett — kényelmes (egy mappában minden):**
+```
+web root (api.vikingodev.hu/)
+└── lead/v1/
+    ├── subscribe.php
+    ├── config.php          ← a név KÖTELEZŐEN config.php (lf-config.php-t itt NEM találja meg!)
+    └── .htaccess           ← a config.php-t is letiltja HTTP-n (csak a subscribe.php hívható)
+```
+
+> ⚠️ A **B)** csak **Apache + működő `.htaccess`** mellett biztonságos (a `config.php` kívülről 403-at ad).
+> Ha a tárhely **nginx**-et használ, a `.htaccess` nem érvényesül → a `config.php` kiszivároghat;
+> ilyenkor az **A)** (web root fölé) kötelező.
+
+### A config tartalma — production/sandbox kapcsolóval
+
+Sablon: [`api/config.example.php`](api/config.example.php). **Mindkét környezet** (éles + teszt) adata
+egyszerre benne van, és **egyetlen sor** (`AC_ENV`) váltja, melyik aktív — **a `subscribe.php`-t nem
+kell módosítani** (a konfig-fájl állítja be az aktív fiók URL+kulcsát):
+
+```php
+define('AC_ENV', 'production');   // 'production' vagy 'sandbox' — EZT az egy sort váltod
+
+$LF_ENVS = [
+    'production' => ['url' => 'https://eles-fiok.api-us1.com',  'key' => '…', 'list' => 1],
+    'sandbox'    => ['url' => 'https://teszt-fiok.api-us1.com', 'key' => '…', 'list' => 3],
+];
+
+// a subscribe.php ezeket a konstansokat várja — az aktív környezetből feloldva:
+$__lf = $LF_ENVS[AC_ENV] ?? $LF_ENVS['production'];
+define('AC_API_URL', $__lf['url']);
+define('AC_API_KEY', $__lf['key']);
+define('LF_LIST_ID',         $LF_ENVS['production']['list']);
+define('LF_SANDBOX_LIST_ID', $LF_ENVS['sandbox']['list']);
+// + LF_GLOBAL_ORIGINS, LF_TAG_PREFIXES (lásd a sablont)
+```
+
+- **Külön AC-fiók** sandboxra és productionre → más `url`+`key` a két ágban (az `url` és a `key`
+  mindig **egy fiókból** való legyen, különben az AC 401-et ad → 502-es hiba).
+- **Egy fiók, két lista** → ugyanaz az `url`+`key` mindkét ágban, csak a `list` tér el.
+- **Váltás teszteléskor**: csak az `AC_ENV` sort írod át (`'sandbox'` ↔ `'production'`), mented — kész.
+- **Turnstile alapból KI** — ne definiáld a `LF_TURNSTILE_SECRET`-et (lásd a [Turnstile](#cloudflare-turnstile-botvédelem--alapból-kikapcsolva) szekciót).
 
 A titkos fájlok nem commitolódnak (lásd `.gitignore`).
 

@@ -6,6 +6,22 @@ A jelölés a [Semantic Versioning](https://semver.org/lang/hu/) szerint:
 A CDN-fogyasztók `@1`-re pinnelve automatikusan kapják a MINOR és PATCH
 frissítéseket; a MAJOR (törő) verziót kézzel kell emelni.
 
+## [2.2.1] — Backend dokumentáció + production/sandbox kapcsoló
+
+### Dokumentáció
+- **README „Backend" szekció pontosítva:** a config keresési sorrendje (env-változók →
+  `lf-config.php` a szülő mappákban → `config.php` ugyanabban a mappában), és két ajánlott
+  elrendezés: **A)** `lf-config.php` a web root fölött (legbiztonságosabb), **B)** `config.php`
+  a `lead/v1/`-ben a `subscribe.php` mellett (kényelmes; csak Apache + `.htaccess` mellett biztonságos).
+  Megjegyzés: a `lead/v1/`-ben a név **kötelezően `config.php`** (az `lf-config.php`-t ott nem találja meg).
+- **`api/config.example.php` átírva** a **production/sandbox kapcsoló** mintára: mindkét környezet
+  (URL + kulcs + lista) egyszerre konfigurálva, és egyetlen `AC_ENV` sor váltja, melyik aktív —
+  **a `subscribe.php` változatlan** (a config-fájl oldja fel az aktív fiók adatait). Külön AC-fiók
+  és „egy fiók, két lista" eset is támogatott. Turnstile alapból kikapcsolva (lásd 2.2.0).
+
+> Megjegyzés: a `dist/` ebben a kiadásban **nem változott** (kód-azonos a 2.2.0-val) — csak
+> dokumentáció és a config-sablon frissült.
+
 ## [2.2.0] — Turnstile alapból kikapcsolva
 
 ### Megváltozott

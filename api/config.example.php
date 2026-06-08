@@ -3,30 +3,48 @@
  * @wpkurzus/lead-form — szerver oldali konfiguráció (v2).
  *
  * ┌─────────────────────────────────────────────────────────────────────────┐
- * │ Élesben AJÁNLOTT a környezeti változós megoldás (ekkor erre a fájlra      │
- * │ nincs is szükség). Ha fájlt használsz, tedd a WEB ROOT FÖLÉ lf-config.php │
- * │ néven. SOHA ne commitold (a .gitignore kizárja).                          │
+ * │ HOVÁ tedd és MILYEN néven?                                                │
+ * │                                                                           │
+ * │  A) web root FÖLÖTT, `lf-config.php` néven   ← legbiztonságosabb (ajánlott)│
+ * │  B) a végpont MELLETT, `lead/v1/config.php` néven  ← kényelmes (egy hely) │
+ * │                                                                           │
+ * │ A subscribe.php így keresi: (1) env-változók → (2) szülő mappákban        │
+ * │ `lf-config.php` → (3) UGYANABBAN a mappában `config.php`. Ezért a         │
+ * │ `lead/v1/`-ben a név KÖTELEZŐEN `config.php` (az `lf-config.php`-t ott NEM │
+ * │ találja meg).                                                             │
+ * │                                                                           │
+ * │ ⚠️ Env-változók (AC_API_URL/AC_API_KEY) FELÜLÍRJÁK ezt a fájlt.           │
+ * │ ⚠️ SOHA ne commitold (a .gitignore kizárja).                              │
+ * │ ⚠️ A B) opció csak Apache + működő `.htaccess` mellett biztonságos (a     │
+ * │    config.php kívülről 403). Nginx-en a `.htaccess` nem érvényes → A).    │
  * └─────────────────────────────────────────────────────────────────────────┘
- *
- * A subscribe.php sorrendje: (1) env-változók → (2) lf-config.php a web root
- * fölött → (3) config.php a végpont mellett (csak fejlesztéshez).
- *
- * Env-változós alternatíva:
- *   AC_API_URL, AC_API_KEY, AC_ENV, LF_LIST_ID, LF_SANDBOX_LIST_ID,
- *   LF_GLOBAL_ORIGINS (vesszővel)
  */
 
-// ActiveCampaign API hozzáférés
-define('AC_API_URL', 'https://youraccount.api-us1.com');
-define('AC_API_KEY', 'ide-jon-az-api-kulcs');
+// ===== AKTÍV KÖRNYEZET — EZT az egy sort állítsd a váltáshoz =====
+define('AC_ENV', 'production');   // 'production' (éles) vagy 'sandbox' (teszt)
 
-// Környezet: 'production' vagy 'sandbox'
-define('AC_ENV', 'production');
+// ===== Mindkét környezet adatai (URL + kulcs + lista — egy AC-fiókhoz tartoznak) =====
+// • KÜLÖN fiók sandboxra és productionre  → más `url`+`key` a két ágban.
+// • EGY fiók, két lista                   → ugyanaz az `url`+`key` mindkettőben, csak a `list` tér el.
+$LF_ENVS = [
+    'production' => [
+        'url'  => 'https://youraccount.api-us1.com',   // éles AC-fiók API URL
+        'key'  => 'ide-jon-a-PRODUCTION-api-kulcs',     // éles fiók API-kulcsa (URL+kulcs EGY fiókból!)
+        'list' => 1,                                    // éles lista ID ("WPKurzus Fő lista")
+    ],
+    'sandbox' => [
+        'url'  => 'https://yoursandbox.api-us1.com',    // teszt AC-fiók API URL
+        'key'  => 'ide-jon-a-SANDBOX-api-kulcs',        // teszt fiók API-kulcsa
+        'list' => 3,                                    // sandbox lista ID
+    ],
+];
 
-// ÁLLANDÓ listák (a feliratkozó MINDIG ezekre kerül, környezet szerint).
-// A funnelt a beágyazásból érkező TAG különbözteti meg, nem a lista.
-define('LF_LIST_ID', 1);          // production — "WPKurzus Fő lista"
-define('LF_SANDBOX_LIST_ID', 3);  // sandbox
+// ===== INNEN LEFELÉ NEM KELL ÁTÍRNI — a subscribe.php ezeket a konstansokat várja =====
+$__lf = $LF_ENVS[AC_ENV] ?? $LF_ENVS['production'];
+define('AC_API_URL', $__lf['url']);                           // az AKTÍV környezet fiókja
+define('AC_API_KEY', $__lf['key']);
+define('LF_LIST_ID',         $LF_ENVS['production']['list']); // production-höz ezt,
+define('LF_SANDBOX_LIST_ID', $LF_ENVS['sandbox']['list']);    // sandbox-hoz ezt használja (AC_ENV szerint)
 
 // Engedélyezett oldalak (CSRF/CORS allowlist). Cross-domain beágyazásnál minden
 // origint IDE kell tenni (a böngésző preflight kérése miatt). A redirect URL is
@@ -44,7 +62,8 @@ define('LF_GLOBAL_ORIGINS', [
 // akarsz, sorold fel az engedélyezett prefixeket, pl. ['LM:', 'WEBINAR:'].
 define('LF_TAG_PREFIXES', []);
 
-// Cloudflare Turnstile SECRET kulcs (a botvédelemhez). Ha üresen hagyod / nem
-// definiálod, a Turnstile-ellenőrzés KI van kapcsolva. A SITE KEY (publikus) NEM
-// ide megy, hanem a beágyazásba (data-turnstile-sitekey) vagy a widget DEFAULT-jába.
+// Cloudflare Turnstile SECRET kulcs (opcionális botvédelem). ALAPBÓL KIKAPCSOLVA:
+// ne definiáld. Ha definiálod, a szerver KÖTELEZŐEN tokent vár — ekkor a widgetnek
+// is sitekey-t kell adni (data-turnstile-sitekey / turnstileSitekey), különben a
+// tokenmentes beküldés 400-at kap. A SITE KEY (publikus) NEM ide megy, hanem a widgetbe.
 // define('LF_TURNSTILE_SECRET', '0x...');
